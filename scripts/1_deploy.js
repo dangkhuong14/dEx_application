@@ -9,7 +9,7 @@
 
 async function main() {
     //Fetch contract 
-//   const Token = await hre.ethers.getContractFactory("Token")
+    //   const Token = await hre.ethers.getContractFactory("Token")
     const Token = await ethers.getContractFactory("Token")
   //Deploy the contract
   const token = await Token.deploy();
