@@ -7,6 +7,7 @@ const tokens = (number)=>{
 
 describe('Token', ()=>{
     let token, accounts, deployer, receiver, exchange
+
     beforeEach(async()=>{
         //Fetch contract Token from Blockchain
         const Token = await ethers.getContractFactory('Token')
@@ -97,6 +98,42 @@ describe('Token', ()=>{
         describe('Failure', ()=>{
             it('rejects invalid spender', async()=>{
                 await expect(token.connect(deployer).approve('0x0000000000000000000000000000000000000000', amount)).to.be.reverted
+            })
+        })
+    })
+    describe('Delegated token transfer', ()=>{
+        let amount, transaction, result
+
+        beforeEach(async()=>{
+            amount = tokens(100)
+            transaction = await token.connect(deployer).approve(exchange.address, amount)
+            result = await transaction.wait()
+        })
+        describe('Success', ()=>{
+            beforeEach(async()=>{
+                transaction = await token.connect(exchange).transferFrom(deployer.address, receiver.address, amount)
+                result = await transaction.wait()
+            })
+            it('Transfer token balances', async()=>{
+                expect(await token.balanceOf(deployer.address)).to.equal(tokens('999900'))
+                expect(await token.balanceOf(receiver.address)).to.equal(amount)
+            })
+            it('resets the allowance', async()=>{
+                expect(await token.allowance(deployer.address, exchange.address)).to.be.equal(0)
+            })
+            it('Emits Transfer event', async()=>{
+                const event = result.events[0];
+                expect(event.event).to.equal('Transfer')
+                const args = event.args
+                expect(args.from).to.equal(deployer.address)
+                expect(args.to).to.equal(receiver.address)
+                expect(args.value).to.equal(amount)
+            })
+        })
+        describe('Failure', ()=>{
+            invalidAmount = tokens(1000)
+            it('rejects invalid amount of token', async()=>{  
+                await expect(token.connect(exchange).transferFrom(deployer.address, receiver.address, invalidAmount)).to.be.reverted
             })
         })
     })
