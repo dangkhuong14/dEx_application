@@ -6,7 +6,7 @@ const tokens = (number)=>{
 }
 
 describe('Token', ()=>{
-    let token, accounts, deployer
+    let token, accounts, deployer, receiver
     beforeEach(async()=>{
         //Fetch contract Token from Blockchain
         const Token = await ethers.getContractFactory('Token')
@@ -14,6 +14,7 @@ describe('Token', ()=>{
         //Get all account from deployed blockchain network
         accounts = await ethers.getSigners()
         deployer = accounts[0]
+        receiver = accounts[1]
     })
     describe('Deployment', async()=>{
         const name = 'Dapp token'
@@ -35,6 +36,20 @@ describe('Token', ()=>{
         })
         it('assign total supply to deployer', async()=>{
             expect(await token.balanceOf(deployer.address)).to.equal(totalSupply)
+        })
+    })
+
+    describe('Sending token', ()=>{
+        let amount, transaction, result
+        beforeEach(async()=>{
+            receiver = accounts[1]
+            amount = tokens(100)
+            transaction = await token.connect(deployer).transfer(receiver.address, amount)
+            result = await transaction.wait()
+        })
+        it('Transfer token', async()=>{
+            expect(await token.balanceOf(deployer.address)).to.equal(tokens(999900))
+            expect(await token.balanceOf(receiver.address)).to.equal(amount)
         })
     })
 })
