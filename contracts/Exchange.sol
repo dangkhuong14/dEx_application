@@ -11,10 +11,20 @@ contract Exchange{
 
     mapping(address => mapping(address => uint256)) public tokens;
     mapping(uint256 => _Order) public orders;
+    mapping(uint256 => bool) public ordersCancelled;
 
     event Deposit(address token, address user, uint256 amount, uint256 balance);
     event Withdraw(address token, address user, uint256 amount, uint256 balance);
     event Order(
+        uint256 id,
+        address user,
+        address tokenGet,
+        uint256 amountGet,
+        address tokenGive,
+        uint256 amountGive,
+        uint256 timestamp);
+
+    event Cancel(
         uint256 id,
         address user,
         address tokenGet,
@@ -68,7 +78,7 @@ contract Exchange{
         return tokens[_token][_user];
     }
 
-    //Make and cancle order
+    //Make and cancel order
 
     function makeOrder(address _tokenGet, uint256 _amountGet, address _tokenGive, uint256 _amountGive) 
     public{
@@ -88,6 +98,19 @@ contract Exchange{
         );
 
         emit Order(orderCount, msg.sender, _tokenGet, _amountGet, _tokenGive, _amountGive, block.timestamp);
+    }
+
+    function cancelOrder(uint256 _id) public{
+        //fetch the order 
+        _Order storage _order = orders[_id];
+        //Check order id
+        require(_order.id == _id);
+        //Ensure the caller of cancel function is the owner of that order (coercing data type:address)
+        require(address(_order.user) == msg.sender);
+        //Cancel order
+        ordersCancelled[_id] = true;
+        //emit event
+        emit Cancel(_id, msg.sender, _order.tokenGet, _order.amountGet, _order.tokenGive, _order.amountGive, _order.timestamp);
     }
 }
 
