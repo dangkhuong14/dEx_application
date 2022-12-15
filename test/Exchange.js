@@ -176,22 +176,35 @@ describe('Exchange', ()=>{
     })
 
     describe('Order actions', ()=>{
-        describe('Cancelling orders', ()=>{
-            let transaction, result
-            let amount = tokens(1)
-            beforeEach(async()=>{
-                //Deposit tokens before make order
-                //Approve token
-                transaction = await token1.connect(user1).approve(exchange.address, amount)
-                result = await transaction.wait()
-                //Deposit token
-                transaction = await exchange.connect(user1).depositToken(token1.address, amount)
-                result = await transaction.wait()
-                //Make new order
-                transaction = await exchange.connect(user1).makeOrder(token2.address, tokens(1), token1.address, tokens(1))
-                result = await transaction.wait()
-            })
 
+        let transaction, result
+        let amount = tokens(1)
+        beforeEach(async()=>{
+            //Deposit tokens before make order
+            //user1 approve token
+            transaction = await token1.connect(user1).approve(exchange.address, amount)
+            result = await transaction.wait()
+            //user1 deposit token
+            transaction = await exchange.connect(user1).depositToken(token1.address, amount)
+            result = await transaction.wait()
+
+            //Give user2 token
+            transaction = await token2.connect(deployer).transfer(user2.address, tokens(100))
+            result = await transaction.wait()
+
+            //user2 approve token
+            transaction = await token2.connect(user2).approve(exchange.address, tokens(2))
+            result = await transaction.wait()
+            //user2 deposit token
+            transaction = await exchange.connect(user2).depositToken(token2.address, tokens(2))
+            result = await transaction.wait()
+
+            //user1 make new order
+            transaction = await exchange.connect(user1).makeOrder(token2.address, tokens(1), token1.address, tokens(1))
+            result = await transaction.wait()
+        })
+
+        describe('Cancelling orders', ()=>{
             describe('Success', async()=>{
                 beforeEach(async()=>{
                     transaction = await exchange.connect(user1).cancelOrder(1)
@@ -199,7 +212,7 @@ describe('Exchange', ()=>{
                 })
 
                 it('updates canceles orders', async()=>{
-                    expect(await exchange.ordersCancelled(1)).to.equal(true)
+                    expect(await exchange.orderCancelled(1)).to.equal(true)
                 })
 
                 it('Emits Cancel event', async()=>{
@@ -224,6 +237,67 @@ describe('Exchange', ()=>{
                 })
             })
         })
+
+        describe('Filling orders', ()=>{
+            
+            describe('Success', ()=>{
+                let transaction, result
+                beforeEach(async()=>{
+                transaction = await exchange.connect(user2).fillOrder(1)
+                result = await transaction.wait()
+                })
+
+                it('executes and charges fee', async()=>{
+                    // Token Give
+                    expect(await exchange.balanceOf(token1.address, user1.address)).to.equal(tokens(0))
+                    expect(await exchange.balanceOf(token1.address, user2.address)).to.equal(tokens(1))
+                    expect(await exchange.balanceOf(token1.address, feeAccount.address)).to.equal(tokens(0))
+                    // Token get
+                    expect(await exchange.balanceOf(token2.address, user1.address)).to.equal(tokens(1))
+                    expect(await exchange.balanceOf(token2.address, user2.address)).to.equal(tokens(0.9))
+                    expect(await exchange.balanceOf(token2.address, feeAccount.address)).to.equal(tokens(0.1))
+                })
+
+                it('moves order to order filled list', async()=>{
+                    expect(await exchange.orderFilled(1)).to.equal(true)
+                })
+
+                it('emits a Trade event', async () => {
+                    const event = result.events[0]
+                    expect(event.event).to.equal('Trade')
+             
+                    const args = event.args
+                    expect(args.id).to.equal(1)
+                    expect(args.user).to.equal(user2.address)
+                    expect(args.tokenGet).to.equal(token2.address)
+                    expect(args.amountGet).to.equal(tokens(1))
+                    expect(args.tokenGive).to.equal(token1.address)
+                    expect(args.amountGive).to.equal(tokens(1))
+                    expect(args.creator).to.equal(user1.address)
+                    expect(args.timestamp).to.at.least(1)
+                })
+            })
+
+            describe('Failure', ()=>{
+                it('rejects invalid order id', async()=>{
+                    await expect(exchange.connect(user2).fillOrder(2)).to.be.reverted
+                })
+                    
+                it('rejects order that was filled', async()=>{
+                    trans = await exchange.connect(user2).fillOrder(1)
+                    await trans.wait()
+                    await expect(exchange.connect(user2).fillOrder(1)).to.be.reverted
+                })
+
+                it('rejects order that was cancelled', async()=>{
+                    trans = await exchange.connect(user1).cancelOrder(1)
+                    await trans.wait()
+                    await expect(exchange.connect(user2).fillOrder(1)).to.be.reverted
+                })
+            })
+
+        })
+
     })
 
 })
