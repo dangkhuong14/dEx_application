@@ -7,18 +7,39 @@ import "./Token.sol";
 contract Exchange{
     address public feeAccount;
     uint256 public feePercent;
+    uint256 public orderCount;
 
     mapping(address => mapping(address => uint256)) public tokens;
+    mapping(uint256 => _Order) public orders;
 
     event Deposit(address token, address user, uint256 amount, uint256 balance);
     event Withdraw(address token, address user, uint256 amount, uint256 balance);
+    event Order(
+        uint256 id,
+        address user,
+        address tokenGet,
+        uint256 amountGet,
+        address tokenGive,
+        uint256 amountGive,
+        uint256 timestamp);
+
+    struct _Order{
+        uint256 id;
+        address user;
+        address tokenGet;
+        uint256 amountGet;
+        address tokenGive;
+        uint256 amountGive;
+        uint256 timestamp;
+    }
 
     constructor(address _feeAccount, uint256 _feePercent){
         feeAccount = _feeAccount;
         feePercent = _feePercent;
     }
 
-    function depositToken(address _token, uint256 _amount) public {
+    function depositToken(address _token, uint256 _amount) 
+    public {
         // Transfer token to exchange
         require(Token(_token).transferFrom(msg.sender, address(this), _amount));
         //manage how many token that user deposited in (update balance)
@@ -27,7 +48,8 @@ contract Exchange{
         emit Deposit(_token, msg.sender, _amount, tokens[_token][msg.sender]);
     }
 
-    function withdrawToken(address _token, uint256 _amount) public {
+    function withdrawToken(address _token, uint256 _amount) 
+    public {
         //Ensure user have enough deposit tokens to withdraw
         require(tokens[_token][msg.sender] >= _amount);
         //Transfer token to user
@@ -39,11 +61,33 @@ contract Exchange{
     }
 
     //Check balance of deposit(wrapper function of tokens mapping)
-    function balanceOf(address _token, address _user) public
+    function balanceOf(address _token, address _user) 
+    public
     view
-    returns (uint256)
-    {
+    returns (uint256){
         return tokens[_token][_user];
+    }
+
+    //Make and cancle order
+
+    function makeOrder(address _tokenGet, uint256 _amountGet, address _tokenGive, uint256 _amountGive) 
+    public{
+        //Require to have enogh deposit balances before making new order
+        require(tokens[_tokenGive][msg.sender] >= _amountGive);
+
+
+        orderCount = orderCount + 1;
+        orders[orderCount] = _Order(
+            orderCount,
+            msg.sender,
+            _tokenGet,
+            _amountGet,
+            _tokenGive,
+            _amountGive,
+            block.timestamp
+        );
+
+        emit Order(orderCount, msg.sender, _tokenGet, _amountGet, _tokenGive, _amountGive, block.timestamp);
     }
 }
 
