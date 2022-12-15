@@ -128,9 +128,9 @@ contract Exchange{
     function fillOrder(uint256 _id) public {
         //Must be valid order Id
         require(_id <= orderCount && _id >0);
-        //Order is already filled
+        //Order cant't be filled
         require(!orderFilled[_id]);
-        //Oder can't be cancelled
+        //Order can't be cancelled
         require(!orderCancelled[_id]);
 
         //Fetch order
