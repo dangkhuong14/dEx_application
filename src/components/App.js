@@ -1,32 +1,26 @@
-import '../App.css';
-import config from '../config.json'
-import TOKEN_ABI from '../abis/Token.json'
-// import Exchange from '../abis/Exchange.json'
 import {useEffect} from 'react'
-import {ethers} from 'ethers'
+import { useDispatch } from 'react-redux'
+import config from '../config.json'
 
+import {
+  loadProvider,
+  loadNetwork,
+  loadAccount,
+  loadToken
+} from '../store/interactions';
 
 function App() {
-  
-  //Metamask injects a global API into website visited, which called window.ethereum 
+  const dispatch = useDispatch()
 
-  //Fetch accounts from metamask wallet
   const loadBlockchainData = async () => {
-    const accounts = await window.ethereum.request({method: 'eth_requestAccounts'})
-    console.log(accounts[0]);
+    await loadAccount(dispatch)
 
-    //Connect ethers to blockchain
-    //Connect provider to external provider(window.ethereum)
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    //Get the network of provider
-    const {chainId} = await provider.getNetwork( window.ethereum )
-    console.log(chainId);
+    // Connect Ethers to blockchain
+    const provider = loadProvider(dispatch)
+    const chainId = await loadNetwork(provider, dispatch)
 
-    //Connect to token smart contract
-    const token = new ethers.Contract(config[chainId].DApp.address, TOKEN_ABI, provider)
-    console.log(token.address);
-    const name = await token.name()
-    console.log(name);
+    // Token Smart Contract
+    await loadToken(provider, config[chainId].DApp.address, dispatch)
   }
 
   useEffect(()=>{
