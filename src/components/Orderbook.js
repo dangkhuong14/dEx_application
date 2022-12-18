@@ -26,7 +26,7 @@ const OrderBook = () => {
             <thead>
               <tr>
                 <th>{symbols && symbols[0]}<img src={sort} alt="Sort" /></th>
-                <th>{symbols && symbols[0]}/{symbols && symbols[1]}<img src={sort} alt="Sort" /></th>
+                <th>{symbols && symbols[1]}/{symbols && symbols[0]}<img src={sort} alt="Sort" /></th>
                 <th>{symbols && symbols[1]}<img src={sort} alt="Sort" /></th>
               </tr>
             </thead>
@@ -37,9 +37,9 @@ const OrderBook = () => {
               {orderBook && orderBook.sellOrders.map((order, index) => {
                 return(
                 <tr key={index}>
-                  <td>{order.token0Amount}</td>
-                  <td style={{ color: `${order.orderTypeClass}` }}>{order.tokenPrice}</td>
                   <td>{order.token1Amount}</td>
+                  <td style={{ color: `${order.orderTypeClass}` }}>{order.tokenPrice}</td>
+                  <td>{order.token0Amount}</td>
                 </tr>
                 )
               })}
@@ -58,7 +58,7 @@ const OrderBook = () => {
             <thead>
               <tr>
                 <th>{symbols && symbols[0]}<img src={sort} alt="Sort" /></th>
-                <th>{symbols && symbols[0]}/{symbols && symbols[1]}<img src={sort} alt="Sort" /></th>
+                <th>{symbols && symbols[1]}/{symbols && symbols[0]}<img src={sort} alt="Sort" /></th>
                 <th>{symbols && symbols[1]}<img src={sort} alt="Sort" /></th>
               </tr>
             </thead>
@@ -69,9 +69,9 @@ const OrderBook = () => {
               {orderBook && orderBook.buyOrders.map((order, index) => {
                 return (
                   <tr key={index}>
-                    <td>{order.token0Amount}</td>
-                    <td style={{ color: `${order.orderTypeClass}` }}>{order.tokenPrice}</td>
                     <td>{order.token1Amount}</td>
+                    <td style={{ color: `${order.orderTypeClass}` }}>{order.tokenPrice}</td>
+                    <td>{order.token0Amount}</td>
                   </tr>
                 )
               })}
