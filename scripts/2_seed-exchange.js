@@ -35,20 +35,33 @@ async function main() {
     // Give tokens to account[1]
     const sender = accounts[0]
     const receiver = accounts[1]
+    const account3 = accounts[2]
     let amount = tokens(10000)
 
-    // user1 transfers 10,000 mETH...
+    // user1 transfers 100,000 mETH...
     let transaction, result
-    transaction = await mETH.connect(sender).transfer(receiver.address, amount)
+    transaction = await mETH.connect(sender).transfer(receiver.address, tokens(100000))
     console.log(`Transferred ${amount} tokens from ${sender.address} to ${receiver.address}\n`)
+
+    // user1 transfers 100,000 mETH... to account 3
+    transaction = await mETH.connect(sender).transfer(account3.address, tokens(100000))
+    console.log(`Transferred ${amount} tokens from ${sender.address} to ${receiver.address}\n`)
+
+    // user1 transfers 100,000 DApp...
+    transaction = await DApp.connect(sender).transfer(receiver.address, tokens(100000))
+    console.log(`Transferred ${amount} tokens from ${sender.address} to ${receiver.address}\n`)
+
+    // user1 transfers 100,000 DApp... to account 3
+    transaction = await DApp.connect(sender).transfer(account3.address, tokens(100000))
+    console.log(`Transferred ${amount} tokens from ${sender.address} to ${account3.address}\n`)
 
     // Set up exchange users
     const user1 = accounts[0]
     const user2 = accounts[1]
     amount = tokens(10000)
 
-    // user1 approves 10,000 Dapp...
-    transaction = await DApp.connect(user1).approve(exchange.address, amount)
+    // user1 approves 100,000 Dapp...
+    transaction = await DApp.connect(user1).approve(exchange.address, tokens(100000))
     await transaction.wait()
     console.log(`Approved ${amount} tokens from ${user1.address}`)
 

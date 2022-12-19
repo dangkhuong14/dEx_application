@@ -3,6 +3,7 @@ import TOKEN_ABI from '../abis/Token.json';
 import EXCHANGE_ABI from '../abis/Exchange.json';
 
 export const loadProvider = (dispatch) => {
+  //Connect to blockchain network with metamask wallet
   const connection = new ethers.providers.Web3Provider(window.ethereum)
   dispatch({ type: 'PROVIDER_LOADED', connection })
 
@@ -10,6 +11,7 @@ export const loadProvider = (dispatch) => {
 }
 
 export const loadNetwork = async (provider, dispatch) => {
+  //Get the blockchain network
   const { chainId } = await provider.getNetwork()
   dispatch({ type: 'NETWORK_LOADED', chainId })
 

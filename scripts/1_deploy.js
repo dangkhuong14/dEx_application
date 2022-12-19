@@ -23,6 +23,7 @@ async function main() {
   await mDAI.deployed();
   console.log(`mDAI is deployed at address: ${mDAI.address}`);
 
+//account[0]: deployer of exchange contract, account[1]: fee account
   const exchange = await Exchange.deploy(accounts[1].address, 10)
   await exchange.deployed()
   console.log(`Exchange deployed to: ${exchange.address}`);
