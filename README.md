@@ -1,13 +1,17 @@
-# Sample Hardhat Project
+# DEX application project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+This project should run on Linux and Mac.
 
-Try running some of the following tasks:
+You should add environment variables of your own first.
+
+Try running some of the following commands:
 
 ```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
+npm install
 npx hardhat node
-npx hardhat run scripts/deploy.js
+npx hardhat test test/Token.js
+npx hardhat test test/Exchange.js
+npx hardhat run --network localhost scripts/1_deploy.js
+npx hardhat run --network localhost scripts/2_seed-exchange.js
+npm start
 ```
